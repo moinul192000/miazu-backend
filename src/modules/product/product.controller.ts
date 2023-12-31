@@ -9,13 +9,15 @@ import {
   Put,
   Query,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { type PageDto } from '../../common/dto/page.dto';
 import { Auth, UUIDParam } from '../../decorators';
 import { CreateProductDto } from './dtos/create-product.dto';
-import { type ProductDto } from './dtos/product.dto';
+import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
+import { ProductDto } from './dtos/product.dto';
 import { ProductPageOptionsDto } from './dtos/product-page-options.dto';
+import { ProductWithVariantDto } from './dtos/product-with-variant.dto';
 import { UpdateProductDto } from './dtos/update-product.dto';
 import { ProductService } from './product.service';
 
@@ -26,15 +28,38 @@ export class ProductController {
 
   @Post()
   @Auth([])
+  @ApiOperation({
+    summary: 'Create Product',
+    description: 'Create Product using product details',
+  })
+  @ApiCreatedResponse({ type: ProductDto, description: 'Product Created' })
   @HttpCode(HttpStatus.CREATED)
   async createProduct(@Body() createProductDto: CreateProductDto) {
-    // eslint-disable-next-line no-console
-    console.log(createProductDto);
-    // Dummy await
-    await new Promise((resolve) => setTimeout(resolve, 1000));
-    // const entity = await this.productService.createProduct(createProductDto);
+    const entity = await this.productService.createProduct(createProductDto);
 
-    // return entity.toDto();
+    return entity.toDto();
+  }
+
+  // Create Product Variant
+  @Post('variants')
+  @Auth([])
+  @ApiOperation({
+    summary: 'Create Product Variant',
+    description: 'Create Product Variant using product id',
+  })
+  @ApiCreatedResponse({
+    type: ProductWithVariantDto,
+    description: 'Product Variant Created Successfully',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async createProductVariant(
+    @Body() createProductVariantDto: CreateProductVariantDto,
+  ) {
+    const entity = await this.productService.createProductVariant(
+      createProductVariantDto,
+    );
+
+    return entity.toDto();
   }
 
   @Get()
@@ -49,10 +74,10 @@ export class ProductController {
   @Get(':id')
   @Auth([])
   @HttpCode(HttpStatus.OK)
-  async getSingleProduct(@UUIDParam('id') id: Uuid): Promise<ProductDto> {
-    const entity = await this.productService.getSingleProduct(id);
-
-    return entity.toDto();
+  async getSingleProduct(
+    @UUIDParam('id') id: Uuid,
+  ): Promise<ProductWithVariantDto> {
+    return this.productService.getSingleProduct(id);
   }
 
   @Put(':id')

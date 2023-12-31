@@ -10,10 +10,7 @@ import { ProductVariantEntity } from './product-variant.entity';
 @UseDto(ProductDto)
 export class ProductEntity extends AbstractEntity<ProductDto> {
   @Column({ unique: true })
-  sku!: string;
-
-  @Column({ nullable: true })
-  barcode?: string;
+  productCode!: string;
 
   @Column()
   name!: string;
@@ -28,11 +25,8 @@ export class ProductEntity extends AbstractEntity<ProductDto> {
   fit!: FitType;
 
   @OneToMany(() => ProductVariantEntity, (variant) => variant.product)
-  variants?: ProductVariantEntity[];
+  variants!: ProductVariantEntity[];
 
   @Column()
   description!: string;
-
-  // @Column()
-  // images: string[];
 }

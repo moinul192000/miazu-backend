@@ -1,25 +1,17 @@
-import { ApiProperty } from '@nestjs/swagger';
-
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { FitType } from '../../../constants';
-import {
-  EnumFieldOptional,
-  StringField,
-  StringFieldOptional,
-} from '../../../decorators';
+import { EnumFieldOptional, StringField } from '../../../decorators';
 import { type ProductEntity } from '../product.entity';
 
 export class ProductDto extends AbstractDto {
-  @ApiProperty({
-    description: 'Product SKU',
-    example: 'SKU-0001',
-    type: String,
+  @StringField({
+    minLength: 3,
+    maxLength: 25,
+    description: 'Product code',
+    example: 'PJ-B01',
+    required: true,
   })
-  @StringField({ maxLength: 25 })
-  sku: string;
-
-  @StringFieldOptional()
-  barcode?: string;
+  readonly productCode!: string;
 
   @StringField()
   name: string;
@@ -38,8 +30,7 @@ export class ProductDto extends AbstractDto {
 
   constructor(productEntity: ProductEntity) {
     super(productEntity);
-    this.sku = productEntity.sku;
-    this.barcode = productEntity.barcode;
+    this.productCode = productEntity.productCode;
     this.name = productEntity.name;
     this.brand = productEntity.brand;
     this.material = productEntity.material;
