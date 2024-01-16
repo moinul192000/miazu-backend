@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 // import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +14,7 @@ import { type UpdateProductDto } from './dtos/update-product.dto';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
 import { ProductEntity } from './product.entity';
 import { ProductVariantEntity } from './product-variant.entity';
+import { StockAdjustmentLogEntity } from './stock-adjustment-log.entity';
 
 @Injectable()
 export class ProductService {
@@ -22,6 +23,8 @@ export class ProductService {
     private productRepository: Repository<ProductEntity>,
     @InjectRepository(ProductVariantEntity)
     private productVariantRepository: Repository<ProductVariantEntity>,
+    @InjectRepository(StockAdjustmentLogEntity)
+    private stockAdjustmentLogRepository: Repository<StockAdjustmentLogEntity>,
   ) {}
 
   @Transactional()
@@ -137,5 +140,49 @@ export class ProductService {
   // Get all product variants with stock
   async getAllProductsWithVariants(): Promise<ProductWithVariantDto[]> {
     return this.productRepository.find({ relations: ['variants'] });
+  }
+
+  // Adjust stock level of a specific product variant with log
+  @Transactional()
+  async adjustStock(
+    sku: string,
+    adjustmentAmount: number,
+    adjustedBy: string,
+    reason?: string,
+  ): Promise<void> {
+    if (adjustmentAmount === 0) {
+      throw new BadRequestException('Adjustment amount cannot be zero');
+    }
+
+    const productVariant = await this.productVariantRepository.findOne({
+      where: { sku },
+    });
+
+    if (!productVariant) {
+      throw new BadRequestException('Product variant not found');
+    }
+
+    const previousStockLevel = productVariant.stockLevel;
+
+    const newStockLevel = previousStockLevel + adjustmentAmount;
+
+    if (newStockLevel < 0) {
+      throw new BadRequestException('Stock level cannot be less than zero');
+    }
+
+    // Update the stock level
+    productVariant.stockLevel = newStockLevel;
+    await this.productVariantRepository.save(productVariant);
+
+    // Create a stock adjustment log
+    const stockAdjustmentLog = new StockAdjustmentLogEntity();
+    stockAdjustmentLog.previousStockLevel = previousStockLevel;
+    stockAdjustmentLog.adjustmentAmount = adjustmentAmount;
+    stockAdjustmentLog.adjustmentDate = new Date();
+    stockAdjustmentLog.adjustedBy = adjustedBy;
+    stockAdjustmentLog.productVariant = productVariant;
+    stockAdjustmentLog.reason = reason;
+
+    await this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
   }
 }

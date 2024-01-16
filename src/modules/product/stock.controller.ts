@@ -1,8 +1,22 @@
-import { Controller, Get, HttpCode, HttpStatus } from '@nestjs/common';
-import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Param,
+  Post,
+} from '@nestjs/common';
+import {
+  ApiBadRequestResponse,
+  ApiCreatedResponse,
+  ApiOperation,
+  ApiTags,
+} from '@nestjs/swagger';
 
 import { Auth } from '../../decorators';
 import { type ProductWithVariantDto } from './dtos/product-with-variant.dto';
+import { UpdateStockDto } from './dtos/update-stock.dto';
 import { ProductService } from './product.service';
 
 @Controller('stocks')
@@ -23,4 +37,28 @@ export class StockController {
 
   // Adjust stock level of a specific product variant
   // @Patch(':productId/variants/:productVariantId/stock')
+
+  @Post('adjust/:sku')
+  @ApiOperation({
+    summary: 'Adjust the Product Stock Manually',
+    description: 'Update the stock of a product variant by its SKU.',
+  })
+  @ApiCreatedResponse({
+    description: 'Product stock adjustment successfull.',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid input, unable to update stock.',
+  })
+  @HttpCode(HttpStatus.CREATED)
+  async updateStock(
+    @Param('sku') sku: string,
+    @Body() updateStockDto: UpdateStockDto,
+  ): Promise<void> {
+    await this.productService.adjustStock(
+      sku,
+      updateStockDto.adjustmentAmount,
+      updateStockDto.adjustedBy,
+      updateStockDto.reason,
+    );
+  }
 }
