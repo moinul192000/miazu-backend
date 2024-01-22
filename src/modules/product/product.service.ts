@@ -77,7 +77,8 @@ export class ProductService {
   async getSingleProduct(id: Uuid): Promise<ProductEntity> {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product')
-      .where('product.id = :id', { id });
+      .where('product.id = :id', { id })
+      .leftJoinAndSelect('product.variants', 'variants');
 
     const productEntity = await queryBuilder.getOne();
 
