@@ -3,7 +3,8 @@
   "include": [
     "src/**/*.ts",
     "*.ts",
-    "test/**/*.ts"
+    "test/**/*.ts",
+    "lint-staged.config.js"
   ],
   "exclude": [
     "node_modules",

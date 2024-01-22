@@ -6,7 +6,6 @@ import {
 } from 'typeorm';
 
 import { LanguageCode } from '../constants';
-import { type Constructor } from '../types';
 import {
   type AbstractDto,
   type AbstractTranslationDto,
@@ -39,10 +38,8 @@ export abstract class AbstractEntity<
 
   translations?: AbstractTranslationEntity[];
 
-  private dtoClass?: Constructor<DTO, [AbstractEntity, O?]>;
-
   toDto(options?: O): DTO {
-    const dtoClass = this.dtoClass;
+    const dtoClass = Object.getPrototypeOf(this).dtoClass;
 
     if (!dtoClass) {
       throw new Error(
