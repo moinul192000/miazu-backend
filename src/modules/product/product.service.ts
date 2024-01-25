@@ -1,7 +1,7 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 // import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { type PageDto } from '../../common/dto/page.dto';
@@ -185,5 +185,42 @@ export class ProductService {
     stockAdjustmentLog.reason = reason;
 
     await this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
+  }
+
+  // Check if product variant is available in stock for the requested quantity
+  async checkProductVariantStock(
+    productVariantId: Uuid,
+    quantity: number,
+  ): Promise<boolean> {
+    const productVariant = await this.productVariantRepository.findOne({
+      where: { id: productVariantId },
+    });
+
+    if (!productVariant) {
+      throw new BadRequestException('Product variant not found');
+    }
+
+    return !(productVariant.stockLevel < quantity);
+  }
+
+  // Get product variant details by id
+  async getProductVariantById(id: Uuid): Promise<ProductVariantEntity> {
+    const productVariant = await this.productVariantRepository.findOne({
+      where: { id },
+    });
+
+    if (!productVariant) {
+      throw new BadRequestException('Product variant not found');
+    }
+
+    return productVariant;
+  }
+
+  // Get multiple product variants by ids
+  async getProductVariantsByIds(ids: Uuid[]): Promise<ProductVariantEntity[]> {
+    return this.productVariantRepository.find({
+      where: { id: In(ids) },
+      relations: ['product'],
+    });
   }
 }
