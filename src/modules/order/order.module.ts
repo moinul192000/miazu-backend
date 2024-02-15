@@ -2,6 +2,8 @@ import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
 import { ProductModule } from '../product/product.module';
+import { UserModule } from '../user/user.module';
+import { OrderController } from './order.controller';
 // import { OrderController } from './order.controller';
 import { OrderEntity } from './order.entity';
 import { OrderService } from './order.service';
@@ -18,8 +20,9 @@ import { ReturnEntity } from './return.entity';
       OrderNoteEntity,
     ]),
     forwardRef(() => ProductModule),
+    forwardRef(() => UserModule),
   ],
   providers: [OrderService],
-  controllers: [],
+  controllers: [OrderController],
 })
 export class OrderModule {}
