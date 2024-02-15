@@ -1,0 +1,9 @@
+export enum OrderChannel {
+  FACEBOOK = 'FACEBOOK',
+  INSTAGRAM = 'INSTAGRAM',
+  WHATSAPP = 'WHATSAPP',
+  WEBSITE = 'WEBSITE',
+  PHONE = 'PHONE',
+  DIRECT = 'DIRECT',
+  OTHER = 'OTHER',
+}

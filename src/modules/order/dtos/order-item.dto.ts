@@ -1,0 +1,39 @@
+import { Type } from 'class-transformer';
+import {
+  IsNumber,
+  IsOptional,
+  IsPositive,
+  ValidateNested,
+} from 'class-validator';
+
+import { AbstractDto } from '../../../common/dto/abstract.dto';
+import { ProductVariantDto } from '../../product/dtos/product-variant.dto';
+import { type OrderItemEntity } from '../order-item.entity';
+import { ReturnDto } from './return.dto';
+
+export class OrderItemDto extends AbstractDto {
+  @Type(() => ProductVariantDto)
+  productVariant: ProductVariantDto;
+
+  @IsNumber()
+  @IsPositive()
+  quantity: number;
+
+  @IsNumber()
+  @IsPositive()
+  price: number;
+
+  @IsOptional()
+  @Type(() => ReturnDto)
+  @ValidateNested({ each: true })
+  returns?: ReturnDto[];
+
+  constructor(orderItem: OrderItemEntity) {
+    super(orderItem);
+    this.productVariant = new ProductVariantDto(orderItem.productVariant);
+    this.quantity = orderItem.quantity;
+    this.price = orderItem.price;
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    this.returns = orderItem.returns?.map((ret) => new ReturnDto(ret));
+  }
+}

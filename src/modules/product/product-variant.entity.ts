@@ -9,6 +9,7 @@ import {
 
 import { AbstractEntity } from '../../common/abstract.entity';
 import { UseDto } from '../../decorators';
+import { OrderItemEntity } from '../order/order-item.entity';
 import { ProductVariantDto } from './dtos/product-variant.dto';
 import { ProductEntity } from './product.entity';
 import { PromotionalFlagEntity } from './promotional-flag.entity';
@@ -44,4 +45,7 @@ export class ProductVariantEntity extends AbstractEntity<ProductVariantDto> {
 
   @OneToMany(() => StockAdjustmentLogEntity, (log) => log.productVariant)
   stockAdjustments!: StockAdjustmentLogEntity[];
+
+  @OneToMany(() => OrderItemEntity, (orderItem) => orderItem.productVariant)
+  orderItems!: OrderItemEntity[];
 }
