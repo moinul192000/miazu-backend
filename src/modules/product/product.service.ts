@@ -1,10 +1,15 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  InternalServerErrorException,
+} from '@nestjs/common';
 // import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { type PageDto } from '../../common/dto/page.dto';
+import { type OrderItemEntity } from '../order/order-item.entity';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { type ProductDto } from './dtos/product.dto';
@@ -184,5 +189,58 @@ export class ProductService {
     stockAdjustmentLog.reason = reason;
 
     await this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
+  }
+
+  // Get product variant by ids
+  // Required for creating order
+  async getVariantByIds(
+    productVariantIds: Uuid[],
+  ): Promise<ProductVariantEntity[]> {
+    return this.productVariantRepository.find({
+      where: {
+        id: In(productVariantIds),
+      },
+    });
+  }
+
+  // Deduct stock level of product variants from orderItems
+  async deductStockFromOrder(
+    orderItems: OrderItemEntity[],
+    reason = 'Order Placed',
+  ): Promise<void> {
+    try {
+      await Promise.all(
+        orderItems.map(async (orderItem) => {
+          const variant = await this.productVariantRepository.findOneByOrFail({
+            id: orderItem.productVariant.id,
+          });
+
+          // Ensure sufficient stock before deduction
+          if (variant.stockLevel < orderItem.quantity) {
+            throw new BadRequestException(
+              `Insufficient stock for product variant: ${variant.sku}`,
+            );
+          }
+
+          variant.stockLevel -= orderItem.quantity;
+          await this.productVariantRepository.save(variant);
+
+          // Create Stock Adjustment Log
+          // const log = new StockAdjustmentLogEntity();
+          // log.previousStockLevel = variant.stockLevel + orderItem.quantity;
+          // log.productVariant = variant;
+          // log.adjustmentAmount = -orderItem.quantity;
+          // log.adjustmentDate = new Date();
+          // log.adjustedBy = 'Order-Service';
+          // log.reason = reason;
+          // await this.stockAdjustmentLogRepository.save(log);
+        }),
+      );
+      // eslint-disable-next-line no-console
+      console.log('Stock deducted', reason);
+      //TODO: Fix callstack issue
+    } catch {
+      throw new InternalServerErrorException('Error deducting stock');
+    }
   }
 }

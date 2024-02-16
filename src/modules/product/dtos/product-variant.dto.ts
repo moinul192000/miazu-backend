@@ -1,4 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
+import { Type } from 'class-transformer';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import {
@@ -7,6 +8,7 @@ import {
   StringFieldOptional,
 } from '../../../decorators';
 import { type ProductVariantEntity } from '../product-variant.entity';
+import { ProductDto } from './product.dto';
 
 export class ProductVariantDto extends AbstractDto {
   @ApiProperty({
@@ -34,6 +36,9 @@ export class ProductVariantDto extends AbstractDto {
   @NumberFieldOptional({ min: 0 })
   stockLevel?: number;
 
+  @Type(() => ProductDto)
+  product?: ProductDto;
+
   constructor(productVariantEntity: ProductVariantEntity) {
     super(productVariantEntity);
     this.sku = productVariantEntity.sku;
@@ -41,5 +46,6 @@ export class ProductVariantDto extends AbstractDto {
     this.size = productVariantEntity.size;
     this.color = productVariantEntity.color;
     this.stockLevel = productVariantEntity.stockLevel;
+    this.product = new ProductDto(productVariantEntity.product);
   }
 }

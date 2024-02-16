@@ -18,5 +18,6 @@ import { StockAdjustmentLogEntity } from './stock-adjustment-log.entity';
   ],
   providers: [ProductService],
   controllers: [ProductController, StockController],
+  exports: [ProductService],
 })
 export class ProductModule {}
