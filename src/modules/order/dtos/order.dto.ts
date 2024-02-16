@@ -2,6 +2,7 @@ import { Type } from 'class-transformer';
 import {
   ArrayNotEmpty,
   IsNotEmpty,
+  IsNumber,
   IsOptional,
   IsPhoneNumber,
   IsString,
@@ -56,6 +57,22 @@ export class OrderDto extends AbstractDto {
   @ValidateNested({ each: true })
   notes?: OrderNoteDto[];
 
+  @IsOptional()
+  @IsNumber({
+    allowNaN: false,
+    allowInfinity: false,
+    maxDecimalPlaces: 2,
+  })
+  discount?: number;
+
+  @IsOptional()
+  @IsNumber({
+    allowNaN: false,
+    allowInfinity: false,
+    maxDecimalPlaces: 2,
+  })
+  deliveryCharge?: number;
+
   constructor(order: OrderEntity) {
     super(order);
     this.orderId = order.orderId;
@@ -67,5 +84,7 @@ export class OrderDto extends AbstractDto {
     this.address = order.address;
     this.items = order.items.map((item) => new OrderItemDto(item));
     this.notes = order.notes?.map((note) => new OrderNoteDto(note));
+    this.discount = order.discount;
+    this.deliveryCharge = order.deliveryFee;
   }
 }
