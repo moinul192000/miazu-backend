@@ -1,7 +1,24 @@
-import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
-import { ApiBody, ApiCreatedResponse, ApiTags } from '@nestjs/swagger';
+import {
+  Body,
+  Controller,
+  Get,
+  HttpCode,
+  HttpStatus,
+  Post,
+  Query,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  ApiBody,
+  ApiCreatedResponse,
+  ApiResponse,
+  ApiTags,
+} from '@nestjs/swagger';
 
+import { RoleType } from '../../constants';
+import { Auth } from '../../decorators';
 import { CreateAdminOrderDto } from './dtos/create-admin-order.dto';
+import { OrdersPageOptionsDto } from './dtos/orders-page-options.dto';
 import { OrderService } from './order.service';
 
 @ApiTags('orders')
@@ -25,8 +42,16 @@ export class OrderController {
     }
   }
 
-  // @Get()
-  // async getAllOrders() {
-  //   return this.orderService.getAllOrders();
-  // }
+  @Get()
+  @ApiResponse({
+    status: 200,
+    description: 'Get all orders',
+  })
+  @Auth([RoleType.ADMIN])
+  async getAllOrders(
+    @Query(new ValidationPipe({ transform: true }))
+    pageOptionsDto: OrdersPageOptionsDto,
+  ) {
+    return this.orderService.getAllOrders(pageOptionsDto);
+  }
 }

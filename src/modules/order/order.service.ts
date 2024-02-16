@@ -10,12 +10,15 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
+import { type PageDto } from '../../common/dto/page.dto';
 // import { OrderStatus } from '../../constants/order-status';
 import { ProductService } from '../product/product.service';
 import { type ProductVariantEntity } from '../product/product-variant.entity';
 import { UserService } from '../user/user.service';
 import { CreateAdminOrderDto } from './dtos/create-admin-order.dto';
 import { type CreateOrderItemDto } from './dtos/create-order-item.dto';
+import { type OrderDto } from './dtos/order.dto';
+import { type OrdersPageOptionsDto } from './dtos/orders-page-options.dto';
 import { OrderEntity } from './order.entity';
 import { OrderItemEntity } from './order-item.entity';
 
@@ -127,7 +130,50 @@ export class OrderService {
   }
 
   // Get all orders
-  async findAll(): Promise<OrderEntity[]> {
-    return this.orderRepository.find();
+  async getAllOrders(
+    pageOptionsDto: OrdersPageOptionsDto,
+  ): Promise<PageDto<OrderDto>> {
+    const queryBuilder = this.orderRepository
+      .createQueryBuilder('orders')
+      .leftJoinAndSelect('orders.items', 'items')
+      .leftJoinAndSelect('items.productVariant', 'productVariant')
+      .leftJoinAndSelect('productVariant.product', 'product')
+      .select('orders')
+      .addSelect(['items.id', 'items.quantity', 'items.price'])
+      .addSelect([
+        'productVariant.sku',
+        'productVariant.size',
+        'productVariant.color',
+      ])
+      .addSelect(['product.name', 'product.brand']);
+
+    // Handle optional filters
+    if (pageOptionsDto.productName) {
+      queryBuilder.andWhere('product.name LIKE :productName', {
+        productName: `%${pageOptionsDto.productName}%`,
+      });
+    }
+
+    if (pageOptionsDto.sku) {
+      queryBuilder.andWhere('productVariant.sku LIKE :sku', {
+        sku: `%${pageOptionsDto.sku}%`,
+      });
+    }
+
+    if (pageOptionsDto.address) {
+      queryBuilder.andWhere('orders.address LIKE :address', {
+        address: `%${pageOptionsDto.address}%`,
+      });
+    }
+
+    if (pageOptionsDto.phoneNumber) {
+      queryBuilder.andWhere('orders.phoneNumber LIKE :phoneNumber', {
+        phoneNumber: `%${pageOptionsDto.phoneNumber}%`,
+      });
+    }
+
+    const [items, pageMetaDto] = await queryBuilder.paginate(pageOptionsDto);
+
+    return items.toPageDto(pageMetaDto);
   }
 }
