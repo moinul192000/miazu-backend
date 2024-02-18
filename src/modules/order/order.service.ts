@@ -11,7 +11,8 @@ import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { type PageDto } from '../../common/dto/page.dto';
-// import { OrderStatus } from '../../constants/order-status';
+import { type PaymentStatus } from '../../constants';
+import { type PaymentEntity } from '../payment/payment.entity';
 import { ProductService } from '../product/product.service';
 import { type ProductVariantEntity } from '../product/product-variant.entity';
 import { UserService } from '../user/user.service';
@@ -175,5 +176,55 @@ export class OrderService {
     const [items, pageMetaDto] = await queryBuilder.paginate(pageOptionsDto);
 
     return items.toPageDto(pageMetaDto);
+  }
+
+  // Get order by ID
+  async getOrderById(id: number): Promise<OrderEntity> {
+    const order = await this.orderRepository.findOne({
+      where: {
+        orderId: id,
+      },
+      relations: ['items', 'items.productVariant', 'items.productVariant'],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  // Helper function to calculate total amount of an order
+  getOrderTotalAmount(order: OrderEntity): number {
+    const totalAmount = order.items.reduce(
+      (total: number, item: OrderItemEntity) =>
+        total + item.price * item.quantity,
+      0,
+    );
+
+    return totalAmount + (order.deliveryFee ?? 0) - (order.discount ?? 0);
+  }
+
+  getOrderTotalPaid(order: OrderEntity): number {
+    return (
+      order.payments?.reduce(
+        (total: number, payment: PaymentEntity) => total + payment.amount,
+        0,
+      ) ?? 0
+    );
+  }
+
+  getOrderTotalDue(order: OrderEntity): number {
+    return this.getOrderTotalAmount(order) - this.getOrderTotalPaid(order);
+  }
+
+  async updateOrderPaymentStatus(orderId: string, status: PaymentStatus) {
+    const result = await this.orderRepository.update(orderId, {
+      paymentStatus: status,
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Order not found');
+    }
   }
 }
