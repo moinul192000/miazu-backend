@@ -28,7 +28,7 @@ export class PaymentService {
       createPaymentDto.orderId,
     );
 
-    const dueAmount = this.orderService.getOrderTotalDue(order);
+    const dueAmount = await this.orderService.getOrderTotalDue(order);
 
     if (createPaymentDto.amount > dueAmount) {
       throw new NotFoundException('Payment amount exceeds due amount');

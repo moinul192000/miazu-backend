@@ -194,28 +194,41 @@ export class OrderService {
     return order;
   }
 
-  // Helper function to calculate total amount of an order
   getOrderTotalAmount(order: OrderEntity): number {
     const totalAmount = order.items.reduce(
       (total: number, item: OrderItemEntity) =>
-        total + item.price * item.quantity,
+        total + Number(Number(item.price) * Number(item.quantity)),
       0,
     );
 
-    return totalAmount + (order.deliveryFee ?? 0) - (order.discount ?? 0);
-  }
-
-  getOrderTotalPaid(order: OrderEntity): number {
     return (
-      order.payments?.reduce(
-        (total: number, payment: PaymentEntity) => total + payment.amount,
-        0,
-      ) ?? 0
+      totalAmount + Number(order.deliveryFee ?? 0) - Number(order.discount ?? 0)
     );
   }
 
-  getOrderTotalDue(order: OrderEntity): number {
-    return this.getOrderTotalAmount(order) - this.getOrderTotalPaid(order);
+  async getOrderTotalPaid(orderId: number): Promise<number> {
+    const order = await this.orderRepository.findOne({
+      where: { orderId },
+      relations: ['payments'],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const totalAmount = order.payments?.reduce(
+      (total: number, payment: PaymentEntity) => total + Number(payment.amount),
+      0,
+    );
+
+    return totalAmount ?? 0;
+  }
+
+  async getOrderTotalDue(order: OrderEntity): Promise<number> {
+    return (
+      this.getOrderTotalAmount(order) -
+      (await this.getOrderTotalPaid(order.orderId))
+    );
   }
 
   async updateOrderPaymentStatus(orderId: string, status: PaymentStatus) {

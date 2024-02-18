@@ -17,6 +17,7 @@ import { addTransactionalDataSource } from 'typeorm-transactional';
 import { AuthModule } from './modules/auth/auth.module';
 import { HealthCheckerModule } from './modules/health-checker/health-checker.module';
 import { OrderModule } from './modules/order/order.module';
+import { PaymentModule } from './modules/payment/payment.module';
 import { ProductModule } from './modules/product/product.module';
 import { UserModule } from './modules/user/user.module';
 import { ApiConfigService } from './shared/services/api-config.service';
@@ -28,6 +29,7 @@ import { SharedModule } from './shared/shared.module';
     UserModule,
     ProductModule,
     OrderModule,
+    PaymentModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

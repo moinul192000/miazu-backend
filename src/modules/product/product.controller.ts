@@ -77,7 +77,7 @@ export class ProductController {
   async getSingleProduct(
     @UUIDParam('id') id: Uuid,
   ): Promise<ProductWithVariantDto> {
-    return this.productService.getSingleProduct(id);
+    return this.productService.getSingleProductWithVariants(id);
   }
 
   @Put(':id')
