@@ -11,7 +11,8 @@ import { Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { type PageDto } from '../../common/dto/page.dto';
-// import { OrderStatus } from '../../constants/order-status';
+import { type PaymentStatus } from '../../constants';
+import { type PaymentEntity } from '../payment/payment.entity';
 import { ProductService } from '../product/product.service';
 import { type ProductVariantEntity } from '../product/product-variant.entity';
 import { UserService } from '../user/user.service';
@@ -175,5 +176,68 @@ export class OrderService {
     const [items, pageMetaDto] = await queryBuilder.paginate(pageOptionsDto);
 
     return items.toPageDto(pageMetaDto);
+  }
+
+  // Get order by ID
+  async getOrderById(id: number): Promise<OrderEntity> {
+    const order = await this.orderRepository.findOne({
+      where: {
+        orderId: id,
+      },
+      relations: ['items', 'items.productVariant', 'items.productVariant'],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
+  getOrderTotalAmount(order: OrderEntity): number {
+    const totalAmount = order.items.reduce(
+      (total: number, item: OrderItemEntity) =>
+        total + Number(Number(item.price) * Number(item.quantity)),
+      0,
+    );
+
+    return (
+      totalAmount + Number(order.deliveryFee ?? 0) - Number(order.discount ?? 0)
+    );
+  }
+
+  async getOrderTotalPaid(orderId: number): Promise<number> {
+    const order = await this.orderRepository.findOne({
+      where: { orderId },
+      relations: ['payments'],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    const totalAmount = order.payments?.reduce(
+      (total: number, payment: PaymentEntity) => total + Number(payment.amount),
+      0,
+    );
+
+    return totalAmount ?? 0;
+  }
+
+  async getOrderTotalDue(order: OrderEntity): Promise<number> {
+    return (
+      this.getOrderTotalAmount(order) -
+      (await this.getOrderTotalPaid(order.orderId))
+    );
+  }
+
+  async updateOrderPaymentStatus(orderId: string, status: PaymentStatus) {
+    const result = await this.orderRepository.update(orderId, {
+      paymentStatus: status,
+    });
+
+    if (result.affected === 0) {
+      throw new NotFoundException('Order not found');
+    }
   }
 }

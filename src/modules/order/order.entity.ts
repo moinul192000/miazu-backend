@@ -1,8 +1,9 @@
 import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
 
 import { AbstractEntity } from '../../common/abstract.entity';
-import { OrderChannel, OrderStatus } from '../../constants';
+import { OrderChannel, OrderStatus, PaymentStatus } from '../../constants';
 import { UseDto } from '../../decorators';
+import { PaymentEntity } from '../payment/payment.entity';
 import { UserEntity } from '../user/user.entity';
 import { OrderDto } from './dtos/order.dto';
 import { OrderItemEntity } from './order-item.entity';
@@ -47,4 +48,10 @@ export class OrderEntity extends AbstractEntity<OrderDto> {
 
   @Column({ type: 'decimal', precision: 10, scale: 2, default: 0 })
   deliveryFee?: number;
+
+  @Column({ type: 'enum', default: PaymentStatus.PENDING, enum: PaymentStatus })
+  paymentStatus!: PaymentStatus;
+
+  @OneToMany(() => PaymentEntity, (payment) => payment.order)
+  payments?: PaymentEntity[];
 }
