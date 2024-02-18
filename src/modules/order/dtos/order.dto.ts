@@ -10,7 +10,7 @@ import {
 } from 'class-validator';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
-import { OrderChannel, OrderStatus } from '../../../constants';
+import { OrderChannel, OrderStatus, PaymentStatus } from '../../../constants';
 import {
   EnumField,
   NumberField,
@@ -73,6 +73,9 @@ export class OrderDto extends AbstractDto {
   })
   deliveryCharge?: number;
 
+  @EnumField(() => PaymentStatus)
+  paymentStatus!: PaymentStatus;
+
   constructor(order: OrderEntity) {
     super(order);
     this.orderId = order.orderId;
@@ -86,5 +89,6 @@ export class OrderDto extends AbstractDto {
     this.notes = order.notes?.map((note) => new OrderNoteDto(note));
     this.discount = order.discount;
     this.deliveryCharge = order.deliveryFee;
+    this.paymentStatus = order.paymentStatus;
   }
 }

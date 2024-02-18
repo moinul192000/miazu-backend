@@ -14,8 +14,8 @@ import {
   ApiTags,
 } from '@nestjs/swagger';
 
+import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decorators';
-import { type ProductWithVariantDto } from './dtos/product-with-variant.dto';
 import { UpdateStockDto } from './dtos/update-stock.dto';
 import { ProductService } from './product.service';
 
@@ -25,13 +25,13 @@ export class StockController {
   constructor(private productService: ProductService) {}
 
   @Get()
-  @Auth([])
+  @Auth([RoleType.ADMIN])
   @ApiOperation({
     summary: 'All Product with Variant',
     description: 'Get All Product Variant With Stock',
   })
   @HttpCode(HttpStatus.OK)
-  async getAllProduct(): Promise<ProductWithVariantDto[]> {
+  async getAllProduct() {
     return this.productService.getAllProductsWithVariants();
   }
 

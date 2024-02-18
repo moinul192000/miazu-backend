@@ -14,7 +14,6 @@ import { CreateProductDto } from './dtos/create-product.dto';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { type ProductDto } from './dtos/product.dto';
 import { type ProductPageOptionsDto } from './dtos/product-page-options.dto';
-import { type ProductWithVariantDto } from './dtos/product-with-variant.dto';
 import { type UpdateProductDto } from './dtos/update-product.dto';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
 import { ProductEntity } from './product.entity';
@@ -143,8 +142,11 @@ export class ProductService {
   }
 
   // Get all product variants with stock
-  async getAllProductsWithVariants(): Promise<ProductWithVariantDto[]> {
-    return this.productRepository.find({ relations: ['variants'] });
+  async getAllProductsWithVariants() {
+    return this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variant')
+      .getMany();
   }
 
   // Adjust stock level of a specific product variant with log
