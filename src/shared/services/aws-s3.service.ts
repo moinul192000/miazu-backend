@@ -19,6 +19,11 @@ export class AwsS3Service {
     this.s3 = new S3({
       apiVersion: awsS3Config.bucketApiVersion,
       region: awsS3Config.bucketRegion,
+      endpoint: `https://${awsS3Config.bucketEndpoint}.r2.cloudflarestorage.com`,
+      credentials: {
+        accessKeyId: awsS3Config.bucketAccessKeyId,
+        secretAccessKey: awsS3Config.bucketSecretAccessKey,
+      },
     });
   }
 
