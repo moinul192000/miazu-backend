@@ -35,6 +35,6 @@ export class ProductEntity extends AbstractEntity<ProductDto> {
   })
   thumbnailImageUrl?: string;
 
-  @Column({ type: 'decimal', precision: 5, scale: 2 })
+  @Column({ type: 'decimal', precision: 10, scale: 2 })
   price!: number;
 }
