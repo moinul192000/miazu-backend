@@ -1,3 +1,5 @@
+import { Transform } from 'class-transformer';
+
 import { FitType } from '../../../constants';
 import { EnumFieldOptional, StringField } from '../../../decorators';
 
@@ -47,4 +49,12 @@ export class CreateProductDto {
     required: true,
   })
   readonly description!: string;
+
+  @StringField({
+    description: 'Price of the product',
+    example: '100.00',
+    required: true,
+  })
+  @Transform(({ value }) => Number.parseFloat(value as string))
+  readonly price!: number;
 }
