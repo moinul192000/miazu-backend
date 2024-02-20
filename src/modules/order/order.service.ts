@@ -197,16 +197,16 @@ export class OrderService {
     }
   }
 
-  // Deduct stock level of product variants from orderItems
-  async deductStockFromOrder(
-    orderItems: OrderItemEntity[],
-    orderId: number,
-  ): Promise<void> {
-    await this.productService.deductStockFromOrder(
-      orderItems,
-      `Order-${orderId}`,
-    );
-  }
+  // // Deduct stock level of product variants from orderItems
+  // async deductStockFromOrder(
+  //   orderItems: OrderItemEntity[],
+  //   orderId: number,
+  // ): Promise<void> {
+  //   await this.productService.deductStockFromOrder(
+  //     orderItems,
+  //     `Order-${orderId}`,
+  //   );
+  // }
 
   // Get all orders
   async getAllOrders(

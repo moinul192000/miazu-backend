@@ -1,9 +1,11 @@
 import {
   Body,
   Controller,
+  forwardRef,
   Get,
   HttpCode,
   HttpStatus,
+  Inject,
   Post,
   Query,
   ValidationPipe,
@@ -17,6 +19,7 @@ import {
 
 import { RoleType } from '../../constants';
 import { Auth } from '../../decorators';
+import { ProductService } from '../product/product.service';
 import { CreateAdminOrderDto } from './dtos/create-admin-order.dto';
 import { CreateFastOrderDto } from './dtos/create-fast-order.dto';
 import { OrdersPageOptionsDto } from './dtos/orders-page-options.dto';
@@ -25,7 +28,11 @@ import { OrderService } from './order.service';
 @ApiTags('orders')
 @Controller('orders')
 export class OrderController {
-  constructor(private readonly orderService: OrderService) {}
+  constructor(
+    private readonly orderService: OrderService,
+    @Inject(forwardRef(() => ProductService))
+    private productService: ProductService,
+  ) {}
 
   @Post('/admin/create')
   @HttpCode(HttpStatus.CREATED)
@@ -35,16 +42,10 @@ export class OrderController {
   })
   @ApiBody({ type: CreateAdminOrderDto })
   async createAdminOrder(@Body() createOrderDto: CreateAdminOrderDto) {
-    const order = await this.orderService.createAdminOrder(createOrderDto);
-
-    if (order.id) {
-      await this.orderService.deductStockFromOrder(order.items, order.orderId);
-
-      return order;
-    }
+    return this.orderService.createAdminOrder(createOrderDto);
   }
 
-  @Post('admin/fast-create')
+  @Post('/admin/fast-create')
   @HttpCode(HttpStatus.CREATED)
   @ApiCreatedResponse({
     description: 'Order created successfully',
@@ -54,11 +55,14 @@ export class OrderController {
   async fastCreateAdminOrder(@Body() createFastOrderDto: CreateFastOrderDto) {
     const order = await this.orderService.createFastOrder(createFastOrderDto);
 
-    if (order.id) {
-      await this.orderService.deductStockFromOrder(order.items, order.orderId);
-
-      return order;
+    if (order.orderId) {
+      await this.productService.deductStockFromOrder(
+        order.items,
+        `Order-${order.orderId}`,
+      );
     }
+
+    return order.orderId;
   }
 
   @Get()
