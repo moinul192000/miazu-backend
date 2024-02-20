@@ -9,6 +9,8 @@ import { In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
 
 import { type PageDto } from '../../common/dto/page.dto';
+import { type IFile } from '../../interfaces';
+import { AwsS3Service } from '../../shared/services/aws-s3.service';
 import { type OrderItemEntity } from '../order/order-item.entity';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
@@ -29,13 +31,19 @@ export class ProductService {
     private productVariantRepository: Repository<ProductVariantEntity>,
     @InjectRepository(StockAdjustmentLogEntity)
     private stockAdjustmentLogRepository: Repository<StockAdjustmentLogEntity>,
+    private s3Service: AwsS3Service,
   ) {}
 
   @Transactional()
   async createProduct(
     createProductDto: CreateProductDto,
+    image: IFile | undefined,
   ): Promise<ProductEntity> {
     const productEntity = this.productRepository.create(createProductDto);
+
+    if (image) {
+      productEntity.thumbnailImageUrl = await this.s3Service.uploadImage(image);
+    }
 
     return this.productRepository.save(productEntity);
   }

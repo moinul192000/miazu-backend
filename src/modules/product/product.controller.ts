@@ -8,11 +8,14 @@ import {
   Post,
   Put,
   Query,
+  UploadedFile,
 } from '@nestjs/common';
 import { ApiCreatedResponse, ApiOperation, ApiTags } from '@nestjs/swagger';
 
 import { type PageDto } from '../../common/dto/page.dto';
-import { Auth, UUIDParam } from '../../decorators';
+import { RoleType } from '../../constants';
+import { ApiFile, Auth, UUIDParam } from '../../decorators';
+import { IFile } from '../../interfaces';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { ProductDto } from './dtos/product.dto';
@@ -27,22 +30,29 @@ export class ProductController {
   constructor(private productService: ProductService) {}
 
   @Post()
-  @Auth([])
+  @Auth([RoleType.ADMIN])
   @ApiOperation({
     summary: 'Create Product',
     description: 'Create Product using product details',
   })
   @ApiCreatedResponse({ type: ProductDto, description: 'Product Created' })
+  @ApiFile({ name: 'thumbnail' })
   @HttpCode(HttpStatus.CREATED)
-  async createProduct(@Body() createProductDto: CreateProductDto) {
-    const entity = await this.productService.createProduct(createProductDto);
+  async createProduct(
+    @Body() createProductDto: CreateProductDto,
+    @UploadedFile() file?: IFile,
+  ) {
+    const entity = await this.productService.createProduct(
+      createProductDto,
+      file,
+    );
 
     return entity.toDto();
   }
 
   // Create Product Variant
   @Post('variants')
-  @Auth([])
+  @Auth([RoleType.ADMIN])
   @ApiOperation({
     summary: 'Create Product Variant',
     description: 'Create Product Variant using product id',

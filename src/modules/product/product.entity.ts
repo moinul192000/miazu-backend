@@ -29,4 +29,9 @@ export class ProductEntity extends AbstractEntity<ProductDto> {
 
   @Column()
   description!: string;
+
+  @Column({
+    nullable: true,
+  })
+  thumbnailImageUrl?: string;
 }
