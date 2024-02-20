@@ -1,5 +1,6 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNumber, IsPositive, IsString, IsUUID } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsPositive, IsString, IsUUID } from 'class-validator';
 
 export class CreateOrderItemDto {
   @ApiProperty({
@@ -16,7 +17,7 @@ export class CreateOrderItemDto {
     example: 1,
     description: 'Quantity of the product variant',
   })
+  @Transform(({ value }) => Number(value))
   @IsPositive()
-  @IsNumber()
   quantity!: number;
 }

@@ -1,6 +1,7 @@
 import { forwardRef, Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
 
+import { CustomerModule } from '../customer/customer.module';
 import { ProductModule } from '../product/product.module';
 import { UserModule } from '../user/user.module';
 import { OrderController } from './order.controller';
@@ -21,6 +22,7 @@ import { ReturnEntity } from './return.entity';
     ]),
     forwardRef(() => ProductModule),
     forwardRef(() => UserModule),
+    forwardRef(() => CustomerModule),
   ],
   providers: [OrderService],
   controllers: [OrderController],
