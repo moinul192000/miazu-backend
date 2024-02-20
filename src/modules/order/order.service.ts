@@ -183,7 +183,7 @@ export class OrderService {
 
         orderItem.productVariant = variant!;
         orderItem.quantity = item.quantity;
-        orderItem.price = 10;
+        orderItem.price = variant?.product.price ?? 0;
         orderItem.order = order;
 
         return this.orderItemRepository.save(orderItem);

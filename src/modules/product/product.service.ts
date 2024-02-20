@@ -210,13 +210,14 @@ export class ProductService {
       where: {
         id: In(productVariantIds),
       },
+      relations: ['product'],
     });
   }
 
   // Deduct stock level of product variants from orderItems
   async deductStockFromOrder(
     orderItems: OrderItemEntity[],
-    reason = 'Order Placed',
+    _reason = 'Order Placed',
   ): Promise<void> {
     try {
       await Promise.all(
@@ -246,9 +247,6 @@ export class ProductService {
           // await this.stockAdjustmentLogRepository.save(log);
         }),
       );
-      // eslint-disable-next-line no-console
-      console.log('Stock deducted', reason);
-      //TODO: Fix callstack issue
     } catch {
       throw new InternalServerErrorException('Error deducting stock');
     }

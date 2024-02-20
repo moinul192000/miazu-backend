@@ -1,6 +1,11 @@
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { FitType } from '../../../constants';
-import { EnumFieldOptional, StringField } from '../../../decorators';
+import {
+  EnumFieldOptional,
+  NumberField,
+  StringField,
+  StringFieldOptional,
+} from '../../../decorators';
 import { type ProductEntity } from '../product.entity';
 
 export class ProductDto extends AbstractDto {
@@ -28,6 +33,12 @@ export class ProductDto extends AbstractDto {
   @StringField()
   description: string;
 
+  @StringFieldOptional()
+  thumbnailImageUrl?: string;
+
+  @NumberField()
+  price!: number;
+
   constructor(productEntity: ProductEntity) {
     super(productEntity);
     this.productCode = productEntity.productCode;
@@ -36,5 +47,7 @@ export class ProductDto extends AbstractDto {
     this.material = productEntity.material;
     this.fit = productEntity.fit;
     this.description = productEntity.description;
+    this.thumbnailImageUrl = productEntity.thumbnailImageUrl;
+    this.price = productEntity.price;
   }
 }
