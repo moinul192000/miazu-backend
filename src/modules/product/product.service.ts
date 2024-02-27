@@ -3,7 +3,6 @@ import {
   Injectable,
   InternalServerErrorException,
 } from '@nestjs/common';
-// import { CommandBus } from '@nestjs/cqrs';
 import { InjectRepository } from '@nestjs/typeorm';
 import { In, Repository } from 'typeorm';
 import { Transactional } from 'typeorm-transactional';
@@ -17,6 +16,7 @@ import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { type ProductDto } from './dtos/product.dto';
 import { type ProductPageOptionsDto } from './dtos/product-page-options.dto';
 import { type UpdateProductDto } from './dtos/update-product.dto';
+import { type UpdateStockDto } from './dtos/update-stock.dto';
 import { ProductNotFoundException } from './exceptions/product-not-found.exception';
 import { ProductEntity } from './product.entity';
 import { ProductVariantEntity } from './product-variant.entity';
@@ -78,7 +78,6 @@ export class ProductService {
     productPageOptionsDto: ProductPageOptionsDto,
   ): Promise<PageDto<ProductDto>> {
     const queryBuilder = this.productRepository.createQueryBuilder('product');
-    // .leftJoinAndSelect('product.translations', 'productTranslation');
     const [items, pageMetaDto] = await queryBuilder.paginate(
       productPageOptionsDto,
     );
@@ -164,7 +163,7 @@ export class ProductService {
     adjustmentAmount: number,
     adjustedBy: string,
     reason?: string,
-  ): Promise<void> {
+  ): Promise<UpdateStockDto> {
     if (adjustmentAmount === 0) {
       throw new BadRequestException('Adjustment amount cannot be zero');
     }
@@ -193,15 +192,15 @@ export class ProductService {
     const stockAdjustmentLog = new StockAdjustmentLogEntity();
     stockAdjustmentLog.previousStockLevel = previousStockLevel;
     stockAdjustmentLog.adjustmentAmount = adjustmentAmount;
+    stockAdjustmentLog.newStockLevel = newStockLevel;
     stockAdjustmentLog.adjustmentDate = new Date();
     stockAdjustmentLog.adjustedBy = adjustedBy;
     stockAdjustmentLog.productVariant = productVariant;
     stockAdjustmentLog.reason = reason;
 
-    await this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
+    return this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
   }
 
-  // Get product variant by ids
   // Required for creating order
   async getVariantByIds(
     productVariantIds: Uuid[],
@@ -250,5 +249,24 @@ export class ProductService {
     } catch {
       throw new InternalServerErrorException('Error deducting stock');
     }
+  }
+
+  // Get all stock adjustment logs
+  async getStockAdjustmentLogs() {
+    return this.stockAdjustmentLogRepository.find();
+  }
+
+  // Get stock adjustment logs by sku
+  async getStockAdjustmentLogBySku(sku: string) {
+    return this.stockAdjustmentLogRepository.find({
+      where: { productVariant: { sku } },
+    });
+  }
+
+  // Get stock adjustment logs by product id
+  async getStockAdjustmentLogByProductId(productId: Uuid) {
+    return this.stockAdjustmentLogRepository.find({
+      where: { productVariant: { product: { id: productId } } },
+    });
   }
 }
