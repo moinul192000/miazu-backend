@@ -11,6 +11,9 @@ export class StockAdjustmentLogEntity extends AbstractEntity {
   @Column({ type: 'int' })
   adjustmentAmount!: number;
 
+  @Column({ type: 'int' })
+  newStockLevel!: number;
+
   @Column({ type: 'timestamp' })
   adjustmentDate!: Date;
 

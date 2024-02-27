@@ -5,7 +5,7 @@ import {
   HttpCode,
   HttpStatus,
   Param,
-  Post,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiBadRequestResponse,
@@ -18,6 +18,7 @@ import { RoleType } from '../../constants/role-type';
 import { Auth } from '../../decorators';
 import { UpdateStockDto } from './dtos/update-stock.dto';
 import { ProductService } from './product.service';
+// import { StockAdjustmentLogEntity } from './stock-adjustment-log.entity';
 
 @Controller('stocks')
 @ApiTags('stocks')
@@ -35,10 +36,8 @@ export class StockController {
     return this.productService.getAllProductsWithVariants();
   }
 
-  // Adjust stock level of a specific product variant
-  // @Patch(':productId/variants/:productVariantId/stock')
-
-  @Post('adjust/:sku')
+  @Patch('adjust/:sku')
+  @Auth([RoleType.ADMIN])
   @ApiOperation({
     summary: 'Adjust the Product Stock Manually',
     description: 'Update the stock of a product variant by its SKU.',
@@ -53,12 +52,46 @@ export class StockController {
   async updateStock(
     @Param('sku') sku: string,
     @Body() updateStockDto: UpdateStockDto,
-  ): Promise<void> {
-    await this.productService.adjustStock(
+  ): Promise<UpdateStockDto> {
+    return this.productService.adjustStock(
       sku,
       updateStockDto.adjustmentAmount,
       updateStockDto.adjustedBy,
       updateStockDto.reason,
     );
+  }
+
+  @Get('logs')
+  @Auth([RoleType.ADMIN])
+  @ApiOperation({
+    summary: 'Stock Adjustment Logs',
+    description: 'Get All Stock Adjustment Logs',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getStockAdjustments() {
+    return this.productService.getStockAdjustmentLogs();
+  }
+
+  // @Get('logs/:id')
+  // @Auth([RoleType.ADMIN])
+  // @ApiOperation({
+  //   summary: 'Stock Adjustment Log',
+  //   description: 'Get Stock Adjustment Log By Id',
+  // })
+  // @HttpCode(HttpStatus.OK)
+  // async getStockAdjustmentLog(@Param('id') id: string) {
+  //   return this.stockAdjustmentLogRepository.findOne(id);
+  // }
+
+  // Get logs by sku or variant id
+  @Get('logs/:sku')
+  @Auth([RoleType.ADMIN])
+  @ApiOperation({
+    summary: 'Stock Adjustment Log By SKU',
+    description: 'Get Stock Adjustment Log By SKU',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getStockAdjustmentLogBySku(@Param('sku') sku: string) {
+    return this.productService.getStockAdjustmentLogBySku(sku);
   }
 }

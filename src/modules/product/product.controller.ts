@@ -5,6 +5,7 @@ import {
   Get,
   HttpCode,
   HttpStatus,
+  Param,
   Post,
   Put,
   Query,
@@ -79,6 +80,17 @@ export class ProductController {
     @Query() productPageOptionsDto: ProductPageOptionsDto,
   ): Promise<PageDto<ProductDto>> {
     return this.productService.getAllProduct(productPageOptionsDto);
+  }
+
+  @Get('logs/:id')
+  @Auth([RoleType.ADMIN])
+  @ApiOperation({
+    summary: 'Stock Adjustment Log By Product',
+    description: 'Get Stock Adjustment Log By Product',
+  })
+  @HttpCode(HttpStatus.OK)
+  async getStockAdjustmentLogByProduct(@Param('id') id: string) {
+    return this.productService.getStockAdjustmentLogByProductId(id as Uuid);
   }
 
   @Get(':id')
