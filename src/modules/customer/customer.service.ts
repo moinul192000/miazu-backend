@@ -70,6 +70,12 @@ export class CustomerService {
     });
   }
 
+  async getCustomer(customerId: Uuid): Promise<CustomerDto> {
+    const userEntity = await this.findCustomerById(customerId);
+
+    return userEntity.toDto();
+  }
+
   async getAllCustomer(
     pageOptionsDto: CustomersPageOptionsDto,
   ): Promise<PageDto<CustomerDto>> {
