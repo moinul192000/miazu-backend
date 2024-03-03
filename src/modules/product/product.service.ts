@@ -269,4 +269,18 @@ export class ProductService {
       where: { productVariant: { product: { id: productId } } },
     });
   }
+
+  async getTotalStockLevel(): Promise<number | null> {
+    // Get sum of stock level of all product variants
+    const stockLevel:
+      | {
+          totalStockLevel: number;
+        }
+      | undefined = await this.productVariantRepository
+      .createQueryBuilder('productVariant')
+      .select('SUM(productVariant.stockLevel)', 'totalStockLevel')
+      .getRawOne();
+
+    return stockLevel?.totalStockLevel || 0;
+  }
 }

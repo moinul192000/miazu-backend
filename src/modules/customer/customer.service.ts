@@ -105,4 +105,10 @@ export class CustomerService {
 
     return items.toPageDto(pageMetaDto);
   }
+
+  // Analytics
+
+  async getTotalCustomers(): Promise<number> {
+    return this.customerRepository.count();
+  }
 }
