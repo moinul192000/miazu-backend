@@ -6,6 +6,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { DataSource } from 'typeorm';
 import { addTransactionalDataSource } from 'typeorm-transactional';
 
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CustomerModule } from './modules/customer/customer.module';
 import { HealthCheckerModule } from './modules/health-checker/health-checker.module';
@@ -24,6 +25,7 @@ import { SharedModule } from './shared/shared.module';
     OrderModule,
     CustomerModule,
     PaymentModule,
+    AnalyticsModule,
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',

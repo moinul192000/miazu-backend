@@ -339,4 +339,8 @@ export class OrderService {
       throw new NotFoundException('Order not found');
     }
   }
+
+  async getTotalOrders(): Promise<number> {
+    return this.orderRepository.count();
+  }
 }
