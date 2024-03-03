@@ -272,6 +272,27 @@ export class OrderService {
     return order;
   }
 
+  async getOrderDetails(id: number): Promise<OrderEntity> {
+    const order = await this.orderRepository.findOne({
+      where: {
+        orderId: id,
+      },
+      relations: [
+        'items',
+        'items.productVariant',
+        'items.productVariant.product',
+        'customer',
+        'payments',
+      ],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    return order;
+  }
+
   getOrderTotalAmount(order: OrderEntity): number {
     const totalAmount = order.items.reduce(
       (total: number, item: OrderItemEntity) =>

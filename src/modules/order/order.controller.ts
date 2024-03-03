@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   forwardRef,
@@ -6,6 +7,7 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Param,
   Post,
   Query,
   ValidationPipe,
@@ -22,7 +24,9 @@ import { Auth } from '../../decorators';
 import { ProductService } from '../product/product.service';
 import { CreateAdminOrderDto } from './dtos/create-admin-order.dto';
 import { CreateFastOrderDto } from './dtos/create-fast-order.dto';
+import { OrderDto } from './dtos/order.dto';
 import { OrdersPageOptionsDto } from './dtos/orders-page-options.dto';
+import { type OrderEntity } from './order.entity';
 import { OrderService } from './order.service';
 
 @ApiTags('orders')
@@ -76,5 +80,21 @@ export class OrderController {
     pageOptionsDto: OrdersPageOptionsDto,
   ) {
     return this.orderService.getAllOrders(pageOptionsDto);
+  }
+
+  @Get(':id')
+  @Auth([RoleType.ADMIN, RoleType.MODERATOR])
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get a Order Details by ID',
+    type: OrderDto,
+  })
+  getOrder(@Param('id') id: number): Promise<OrderEntity> {
+    if (!id) {
+      throw new BadRequestException('ID must be provided');
+    }
+
+    return this.orderService.getOrderDetails(id);
   }
 }

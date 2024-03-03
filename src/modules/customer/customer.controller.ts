@@ -2,6 +2,8 @@ import {
   Body,
   Controller,
   Get,
+  HttpCode,
+  HttpStatus,
   Post,
   Query,
   ValidationPipe,
@@ -10,11 +12,11 @@ import { ApiResponse, ApiTags } from '@nestjs/swagger';
 
 import { type PageDto } from '../../common/dto/page.dto';
 import { RoleType } from '../../constants';
-import { Auth } from '../../decorators';
+import { Auth, UUIDParam } from '../../decorators';
 import { type CustomerEntity } from './customer.entity';
 import { CustomerService } from './customer.service';
 import { CreateCustomerDto } from './dtos/create-customer.dto';
-import { type CustomerDto } from './dtos/customer.dto';
+import { CustomerDto } from './dtos/customer.dto';
 import { type CustomerBasicDto } from './dtos/customer-basic.dto';
 import { CustomersPageOptionsDto } from './dtos/customers-page-options.dto';
 
@@ -34,6 +36,18 @@ export class CustomerController {
     pageOptionsDto: CustomersPageOptionsDto,
   ): Promise<PageDto<CustomerDto>> {
     return this.customerService.getAllCustomer(pageOptionsDto);
+  }
+
+  @Get(':id')
+  @Auth([RoleType.ADMIN, RoleType.MODERATOR])
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get a customer by ID',
+    type: CustomerDto,
+  })
+  getUser(@UUIDParam('id') customerId: Uuid): Promise<CustomerDto> {
+    return this.customerService.getCustomer(customerId);
   }
 
   @Get('basic-info')
