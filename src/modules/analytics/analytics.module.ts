@@ -3,6 +3,7 @@ import { forwardRef, Module } from '@nestjs/common';
 
 import { CustomerModule } from '../customer/customer.module';
 import { OrderModule } from '../order/order.module';
+import { PaymentModule } from '../payment/payment.module';
 import { ProductModule } from '../product/product.module';
 import { AnalyticsController } from './analytics.controller';
 import { AnalyticsService } from './analytics.service';
@@ -13,8 +14,9 @@ import { AnalyticsService } from './analytics.service';
     forwardRef(() => OrderModule),
     forwardRef(() => ProductModule),
     forwardRef(() => OrderModule),
+    forwardRef(() => PaymentModule),
     CacheModule.register({
-      ttl: 600_000, // 10 minutes
+      ttl: 300_000, // 5 minutes
       max: 10,
     }),
   ],

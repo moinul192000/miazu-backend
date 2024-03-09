@@ -91,4 +91,19 @@ export class PaymentService {
       where: { order: { orderId } },
     });
   }
+
+  // Get total payments value
+  async getTotalPaymentsValue(): Promise<number> {
+    const totalPayments:
+      | {
+          totalPayments: number;
+        }
+      | undefined = await this.paymentRepository
+      .createQueryBuilder('payment')
+      .where('payment.amount > 0')
+      .select('SUM(payment.amount)', 'totalPayments')
+      .getRawOne();
+
+    return totalPayments?.totalPayments || 0;
+  }
 }

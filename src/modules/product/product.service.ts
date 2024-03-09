@@ -77,7 +77,10 @@ export class ProductService {
   async getAllProduct(
     productPageOptionsDto: ProductPageOptionsDto,
   ): Promise<PageDto<ProductDto>> {
-    const queryBuilder = this.productRepository.createQueryBuilder('product');
+    const queryBuilder = this.productRepository
+      .createQueryBuilder('product')
+      .orderBy('product.createdAt', 'DESC')
+      .orderBy('product.code', 'ASC');
     const [items, pageMetaDto] = await queryBuilder.paginate(
       productPageOptionsDto,
     );
@@ -104,6 +107,7 @@ export class ProductService {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.variants', 'productVariant')
+      .orderBy('productVariant.size', 'ASC')
       .where('product.id = :id', { id });
 
     const productEntity = await queryBuilder.getOne();
@@ -153,6 +157,15 @@ export class ProductService {
     return this.productRepository
       .createQueryBuilder('product')
       .leftJoinAndSelect('product.variants', 'variant')
+      .orderBy(
+        "CASE WHEN variant.size = 'S' THEN 1 " +
+          "WHEN variant.size = 'M' THEN 2 " +
+          "WHEN variant.size = 'L' THEN 3 " +
+          "WHEN variant.size = 'XL' THEN 4 " +
+          "WHEN variant.size = 'XXL' THEN 5 " +
+          'ELSE 6 END',
+        'ASC',
+      )
       .getMany();
   }
 
@@ -282,5 +295,22 @@ export class ProductService {
       .getRawOne();
 
     return stockLevel?.totalStockLevel || 0;
+  }
+
+  async getTotalEstimatedStockValue(): Promise<number | null> {
+    const stockValue:
+      | {
+          totalEstimatedStockValue: number;
+        }
+      | undefined = await this.productRepository
+      .createQueryBuilder('product')
+      .leftJoinAndSelect('product.variants', 'variant')
+      .select(
+        'SUM(variant.stockLevel * product.price)',
+        'totalEstimatedStockValue',
+      )
+      .getRawOne();
+
+    return stockValue?.totalEstimatedStockValue || 0;
   }
 }
