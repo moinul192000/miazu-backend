@@ -224,7 +224,9 @@ export class OrderService {
         'productVariant.size',
         'productVariant.color',
       ])
-      .addSelect(['product.name', 'product.brand']);
+      .addSelect(['product.name', 'product.brand'])
+      .orderBy('orders.createdAt', 'DESC')
+      .addOrderBy('orders.orderId', 'DESC');
 
     // Handle optional filters
     if (pageOptionsDto.productName) {
