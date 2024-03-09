@@ -80,7 +80,7 @@ export class ProductService {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product')
       .orderBy('product.createdAt', 'DESC')
-      .orderBy('product.code', 'ASC');
+      .orderBy('product.productCode', 'ASC');
     const [items, pageMetaDto] = await queryBuilder.paginate(
       productPageOptionsDto,
     );
