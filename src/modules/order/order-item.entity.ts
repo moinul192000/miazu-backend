@@ -5,7 +5,7 @@ import { UseDto } from '../../decorators';
 import { ProductVariantEntity } from '../product/product-variant.entity';
 import { OrderItemDto } from './dtos/order-item.dto';
 import { OrderEntity } from './order.entity';
-import { ReturnEntity } from './return.entity';
+import { OrderItemReturnEntity } from './order-item-return.entity';
 
 @Entity({ name: 'order_item' })
 @UseDto(OrderItemDto)
@@ -22,6 +22,6 @@ export class OrderItemEntity extends AbstractEntity<OrderItemDto> {
   @Column({ type: 'float' })
   price!: number;
 
-  @OneToMany(() => ReturnEntity, (ret) => ret.orderItems)
-  returns!: ReturnEntity[];
+  @OneToMany(() => OrderItemReturnEntity, (itemReturn) => itemReturn.orderItem)
+  itemReturns!: OrderItemReturnEntity[];
 }

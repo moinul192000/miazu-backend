@@ -9,7 +9,7 @@ import {
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ProductVariantDto } from '../../product/dtos/product-variant.dto';
 import { type OrderItemEntity } from '../order-item.entity';
-import { ReturnDto } from './return.dto';
+import { OrderItemReturnDto } from './order-item-return.dto';
 
 export class OrderItemDto extends AbstractDto {
   @Type(() => ProductVariantDto)
@@ -24,16 +24,17 @@ export class OrderItemDto extends AbstractDto {
   price: number;
 
   @IsOptional()
-  @Type(() => ReturnDto)
+  @Type(() => OrderItemReturnDto)
   @ValidateNested({ each: true })
-  returns?: ReturnDto[];
+  itemReturns?: OrderItemReturnDto[];
 
   constructor(orderItem: OrderItemEntity) {
     super(orderItem);
     this.productVariant = new ProductVariantDto(orderItem.productVariant);
     this.quantity = orderItem.quantity;
     this.price = orderItem.price;
-    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-    this.returns = orderItem.returns?.map((ret) => new ReturnDto(ret));
+    this.itemReturns = orderItem.itemReturns.map(
+      (itemReturn) => new OrderItemReturnDto(itemReturn),
+    );
   }
 }

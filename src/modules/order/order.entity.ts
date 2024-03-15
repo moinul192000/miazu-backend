@@ -1,4 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany } from 'typeorm';
+import { Column, Entity, ManyToOne, OneToMany, OneToOne } from 'typeorm';
 
 import { AbstractEntity } from '../../common/abstract.entity';
 import { OrderChannel, OrderStatus, PaymentStatus } from '../../constants';
@@ -9,6 +9,7 @@ import { UserEntity } from '../user/user.entity';
 import { OrderDto } from './dtos/order.dto';
 import { OrderItemEntity } from './order-item.entity';
 import { OrderNoteEntity } from './order-note.entity';
+import { ReturnEntity } from './return.entity';
 
 @Entity({ name: 'orders' })
 @UseDto(OrderDto)
@@ -60,4 +61,16 @@ export class OrderEntity extends AbstractEntity<OrderDto> {
 
   @OneToMany(() => PaymentEntity, (payment) => payment.order)
   payments?: PaymentEntity[];
+
+  @OneToOne(() => ReturnEntity, (returnOrder) => returnOrder.order, {
+    nullable: true,
+  })
+  returnOrder?: ReturnEntity;
+
+  @OneToOne(
+    () => ReturnEntity,
+    (exchangeOrder) => exchangeOrder.exchangeOrder,
+    { nullable: true },
+  )
+  exchangeOrder?: ReturnEntity;
 }
