@@ -33,7 +33,8 @@ export class OrderItemDto extends AbstractDto {
     this.productVariant = new ProductVariantDto(orderItem.productVariant);
     this.quantity = orderItem.quantity;
     this.price = orderItem.price;
-    this.itemReturns = orderItem.itemReturns.map(
+    // eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+    this.itemReturns = orderItem.itemReturns?.map(
       (itemReturn) => new OrderItemReturnDto(itemReturn),
     );
   }

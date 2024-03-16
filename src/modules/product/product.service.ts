@@ -11,6 +11,7 @@ import { type PageDto } from '../../common/dto/page.dto';
 import { type IFile } from '../../interfaces';
 import { AwsS3Service } from '../../shared/services/aws-s3.service';
 import { type OrderItemEntity } from '../order/order-item.entity';
+import { type OrderItemReturnEntity } from '../order/order-item-return.entity';
 import { CreateProductDto } from './dtos/create-product.dto';
 import { CreateProductVariantDto } from './dtos/create-product-variant.dto';
 import { type ProductDto } from './dtos/product.dto';
@@ -312,5 +313,37 @@ export class ProductService {
       .getRawOne();
 
     return stockValue?.totalEstimatedStockValue || 0;
+  }
+
+  async adjustStockForReturn(
+    itemReturns: OrderItemReturnEntity[],
+    orderId: number,
+  ): Promise<void> {
+    const reason = `Return for order: ${orderId}`;
+
+    try {
+      await Promise.all(
+        itemReturns.map(async (itemReturn) => {
+          const variant = await this.productVariantRepository.findOneByOrFail({
+            id: itemReturn.orderItem.productVariant.id,
+          });
+          const log = new StockAdjustmentLogEntity();
+          log.previousStockLevel = variant.stockLevel;
+
+          variant.stockLevel += itemReturn.returnQuantity;
+          await this.productVariantRepository.save(variant);
+
+          log.productVariant = variant;
+          log.adjustmentAmount = itemReturn.returnQuantity;
+          log.newStockLevel = variant.stockLevel;
+          log.adjustmentDate = new Date();
+          log.adjustedBy = 'System';
+          log.reason = reason;
+          await this.stockAdjustmentLogRepository.save(log);
+        }),
+      );
+    } catch {
+      throw new InternalServerErrorException('Error adjusting stock');
+    }
   }
 }

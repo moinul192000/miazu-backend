@@ -20,10 +20,13 @@ import { UserService } from '../user/user.service';
 import { CreateAdminOrderDto } from './dtos/create-admin-order.dto';
 import { CreateFastOrderDto } from './dtos/create-fast-order.dto';
 import { type CreateOrderItemDto } from './dtos/create-order-item.dto';
+import { type CreateReturnDto } from './dtos/create-return.dto';
 import { type OrderDto } from './dtos/order.dto';
 import { type OrdersPageOptionsDto } from './dtos/orders-page-options.dto';
 import { OrderEntity } from './order.entity';
 import { OrderItemEntity } from './order-item.entity';
+import { OrderItemReturnEntity } from './order-item-return.entity';
+import { ReturnEntity } from './return.entity';
 
 @Injectable()
 export class OrderService {
@@ -32,6 +35,10 @@ export class OrderService {
     private orderRepository: Repository<OrderEntity>,
     @InjectRepository(OrderItemEntity)
     private orderItemRepository: Repository<OrderItemEntity>,
+    @InjectRepository(ReturnEntity)
+    private returnRepository: Repository<ReturnEntity>,
+    @InjectRepository(OrderItemReturnEntity)
+    private orderItemReturnRepository: Repository<OrderItemReturnEntity>,
     @Inject(forwardRef(() => ProductService))
     private productService: ProductService,
     @Inject(forwardRef(() => UserService))
@@ -274,7 +281,7 @@ export class OrderService {
     return order;
   }
 
-  async getOrderDetails(id: number): Promise<OrderEntity> {
+  async getOrderDetails(id: number) {
     const order = await this.orderRepository.findOne({
       where: {
         orderId: id,
@@ -285,6 +292,9 @@ export class OrderService {
         'items.productVariant.product',
         'customer',
         'payments',
+        'returnOrder',
+        'returnOrder.itemReturns',
+        'returnOrder.itemReturns.orderItem',
       ],
     });
 
@@ -292,7 +302,26 @@ export class OrderService {
       throw new NotFoundException('Order not found');
     }
 
-    return order;
+    return {
+      ...order,
+      returnOrder: order.returnOrder
+        ? {
+            ...order.returnOrder,
+            itemReturns: order.returnOrder.itemReturns.map((itemReturn) => ({
+              ...itemReturn,
+              orderItem: {
+                ...itemReturn.orderItem,
+                size: order.items.find(
+                  (item) => item.id === itemReturn.orderItem.id,
+                )?.productVariant.size,
+                name: order.items.find(
+                  (item) => item.id === itemReturn.orderItem.id,
+                )?.productVariant.product.name,
+              },
+            })),
+          }
+        : null,
+    };
   }
 
   getOrderTotalAmount(order: OrderEntity): number {
@@ -302,8 +331,17 @@ export class OrderService {
       0,
     );
 
+    const returnAmount = order.returnOrder?.itemReturns.reduce(
+      (total: number, itemReturn: OrderItemReturnEntity) =>
+        total + Number(itemReturn.returnQuantity * itemReturn.orderItem.price),
+      0,
+    );
+
     return (
-      totalAmount + Number(order.deliveryFee ?? 0) - Number(order.discount ?? 0)
+      totalAmount +
+      Number(order.deliveryFee ?? 0) -
+      Number(order.discount ?? 0) -
+      (returnAmount ?? 0)
     );
   }
 
@@ -344,5 +382,88 @@ export class OrderService {
 
   async getTotalOrders(): Promise<number> {
     return this.orderRepository.count();
+  }
+
+  async createReturn(orderId: number, createReturnDto: CreateReturnDto) {
+    const order = await this.orderRepository.findOne({
+      where: { orderId },
+      relations: ['items', 'items.productVariant'],
+    });
+
+    if (!order) {
+      throw new NotFoundException('Order not found');
+    }
+
+    // Validate return items and quantity against order items and quantity
+    for (const returnItem of createReturnDto.itemReturns) {
+      const orderItem = order.items.find(
+        (item) => item.id === returnItem.orderItemId,
+      );
+
+      if (!orderItem) {
+        throw new BadRequestException('Order item not found');
+      }
+
+      if (orderItem.quantity < returnItem.returnQuantity) {
+        throw new BadRequestException('Return quantity exceeds order quantity');
+      }
+    }
+
+    const { reason, restockingFee, isReturned, isExchange, itemReturns } =
+      createReturnDto;
+
+    // Create return entity based on createReturnDto using returnRepository
+    const returnEntity = this.returnRepository.create({
+      reason,
+      restockingFee,
+      isReturned,
+      isExchange,
+      order,
+    });
+
+    const orderItemReturnPromises = itemReturns.map(async (itemReturn) => {
+      const orderItem = await this.orderItemRepository.findOneOrFail({
+        where: {
+          id: itemReturn.orderItemId as Uuid,
+        },
+      });
+      const orderItemReturn = this.orderItemReturnRepository.create({
+        orderItem,
+        returnOrder: returnEntity,
+        returnQuantity: itemReturn.returnQuantity,
+      });
+
+      return this.orderItemReturnRepository.save(orderItemReturn);
+    });
+
+    const orderItemReturns = await Promise.all(orderItemReturnPromises);
+    returnEntity.itemReturns = orderItemReturns;
+
+    return this.returnRepository.save(returnEntity);
+  }
+
+  @Transactional()
+  async markReturnAsReturned(returnId: Uuid): Promise<void> {
+    const returnOrder = await this.returnRepository.findOne({
+      where: { id: returnId },
+      relations: [
+        'itemReturns',
+        'itemReturns.orderItem',
+        'itemReturns.orderItem.productVariant',
+        'order',
+      ],
+    });
+
+    if (!returnOrder) {
+      throw new NotFoundException('Return not found');
+    }
+
+    returnOrder.isReturned = true;
+    await this.returnRepository.save(returnOrder);
+
+    return this.productService.adjustStockForReturn(
+      returnOrder.itemReturns,
+      returnOrder.order.orderId,
+    );
   }
 }

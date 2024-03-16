@@ -14,8 +14,8 @@ import { type ReturnEntity } from '../return.entity';
 import { OrderItemReturnDto } from './order-item-return.dto';
 
 export class ReturnDto extends AbstractDto {
-  @IsUUID()
-  orderId!: string;
+  @IsNumber()
+  orderId!: number;
 
   @Type(() => OrderItemReturnDto)
   itemReturns: OrderItemReturnDto[];
@@ -42,7 +42,7 @@ export class ReturnDto extends AbstractDto {
 
   constructor(returnEntity: ReturnEntity) {
     super(returnEntity);
-    this.orderId = returnEntity.order.id;
+    this.orderId = returnEntity.order.orderId;
     this.reason = returnEntity.reason;
     this.restockingFee = returnEntity.restockingFee;
     this.isReturned = returnEntity.isReturned;
