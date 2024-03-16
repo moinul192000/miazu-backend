@@ -439,6 +439,21 @@ export class OrderService {
     const orderItemReturns = await Promise.all(orderItemReturnPromises);
     returnEntity.itemReturns = orderItemReturns;
 
+    // Update order item by deducting the return quantity from the order item quantity
+    const orderItemUpdates = itemReturns.map(async (returnItem) => {
+      const orderItem = order.items.find(
+        (item) => item.id === returnItem.orderItemId,
+      );
+
+      if (orderItem) {
+        orderItem.quantity -= returnItem.returnQuantity;
+
+        return this.orderItemRepository.save(orderItem);
+      }
+    });
+
+    await Promise.all(orderItemUpdates);
+
     return this.returnRepository.save(returnEntity);
   }
 
