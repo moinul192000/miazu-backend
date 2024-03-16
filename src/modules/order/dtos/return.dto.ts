@@ -1,28 +1,24 @@
 import { Type } from 'class-transformer';
 import {
-  IsArray,
   IsBoolean,
   IsEnum,
   IsNumber,
   IsOptional,
   IsPositive,
-  ValidateNested,
+  IsUUID,
 } from 'class-validator';
 
 import { AbstractDto } from '../../../common/dto/abstract.dto';
 import { ReturnReason } from '../../../constants';
 import { type ReturnEntity } from '../return.entity';
-import { OrderItemDto } from './order-item.dto';
+import { OrderItemReturnDto } from './order-item-return.dto';
 
 export class ReturnDto extends AbstractDto {
-  @Type(() => OrderItemDto)
-  @IsArray()
-  @ValidateNested({ each: true }) // Add for nested array validation
-  orderItems: OrderItemDto[]; // Plural 'orderItems' to match the Entity
-
   @IsNumber()
-  @IsPositive()
-  quantityReturned: number;
+  orderId!: number;
+
+  @Type(() => OrderItemReturnDto)
+  itemReturns: OrderItemReturnDto[];
 
   @IsEnum(ReturnReason)
   reason: ReturnReason;
@@ -40,15 +36,20 @@ export class ReturnDto extends AbstractDto {
   @IsBoolean()
   isExchange: boolean;
 
+  @IsOptional()
+  @IsUUID()
+  exchangeOrderId?: string;
+
   constructor(returnEntity: ReturnEntity) {
     super(returnEntity);
-    this.orderItems = returnEntity.orderItems.map(
-      (item) => new OrderItemDto(item),
-    );
-    this.quantityReturned = returnEntity.quantityReturned;
+    this.orderId = returnEntity.order.orderId;
     this.reason = returnEntity.reason;
     this.restockingFee = returnEntity.restockingFee;
     this.isReturned = returnEntity.isReturned;
     this.isExchange = returnEntity.isExchange;
+    this.exchangeOrderId = returnEntity.exchangeOrder?.id;
+    this.itemReturns = returnEntity.itemReturns.map(
+      (itemReturn) => new OrderItemReturnDto(itemReturn),
+    );
   }
 }

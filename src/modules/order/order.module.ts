@@ -9,7 +9,9 @@ import { OrderController } from './order.controller';
 import { OrderEntity } from './order.entity';
 import { OrderService } from './order.service';
 import { OrderItemEntity } from './order-item.entity';
+import { OrderItemReturnEntity } from './order-item-return.entity';
 import { OrderNoteEntity } from './order-note.entity';
+import { ReturnController } from './return.controller';
 import { ReturnEntity } from './return.entity';
 
 @Module({
@@ -19,13 +21,14 @@ import { ReturnEntity } from './return.entity';
       OrderItemEntity,
       ReturnEntity,
       OrderNoteEntity,
+      OrderItemReturnEntity,
     ]),
     forwardRef(() => ProductModule),
     forwardRef(() => UserModule),
     forwardRef(() => CustomerModule),
   ],
   providers: [OrderService],
-  controllers: [OrderController],
+  controllers: [OrderController, ReturnController],
   exports: [OrderService],
 })
 export class OrderModule {}

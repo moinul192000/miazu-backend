@@ -1,21 +1,24 @@
-import { IsPositive } from 'class-validator';
-import { Column, Entity, ManyToMany } from 'typeorm';
+import { Column, Entity, JoinColumn, OneToMany, OneToOne } from 'typeorm';
 
 import { AbstractEntity } from '../../common/abstract.entity';
 import { ReturnReason } from '../../constants';
 import { UseDto } from '../../decorators';
 import { ReturnDto } from './dtos/return.dto';
-import { OrderItemEntity } from './order-item.entity';
+import { OrderEntity } from './order.entity';
+import { OrderItemReturnEntity } from './order-item-return.entity';
 
 @Entity({ name: 'returns' })
 @UseDto(ReturnDto)
 export class ReturnEntity extends AbstractEntity<ReturnDto> {
-  @ManyToMany(() => OrderItemEntity, (orderItem) => orderItem.returns)
-  orderItems!: OrderItemEntity[];
+  @OneToOne(() => OrderEntity, (order) => order.returnOrder)
+  @JoinColumn()
+  order!: OrderEntity;
 
-  @Column({ type: 'int', default: 1 })
-  @IsPositive()
-  quantityReturned!: number;
+  @OneToMany(
+    () => OrderItemReturnEntity,
+    (itemReturn) => itemReturn.returnOrder,
+  )
+  itemReturns!: OrderItemReturnEntity[];
 
   @Column({ type: 'enum', enum: ReturnReason, default: ReturnReason.OTHER })
   reason!: ReturnReason;
@@ -28,4 +31,9 @@ export class ReturnEntity extends AbstractEntity<ReturnDto> {
 
   @Column({ type: 'boolean', default: true })
   isExchange!: boolean;
+
+  @OneToOne(() => OrderEntity, (order) => order.exchangeOrder, {
+    nullable: true,
+  })
+  exchangeOrder?: OrderEntity;
 }
