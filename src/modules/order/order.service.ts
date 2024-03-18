@@ -190,7 +190,14 @@ export class OrderService {
 
         orderItem.productVariant = variant!;
         orderItem.quantity = item.quantity;
-        orderItem.price = variant?.product.price ?? 0;
+
+        // eslint-disable-next-line unicorn/prefer-ternary
+        if (item.price) {
+          orderItem.price = item.price;
+        } else {
+          orderItem.price = variant?.product.price ?? 0;
+        }
+
         orderItem.order = order;
 
         return this.orderItemRepository.save(orderItem);

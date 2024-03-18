@@ -1,4 +1,4 @@
-import { ApiProperty } from '@nestjs/swagger';
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import { Transform } from 'class-transformer';
 import { IsPositive, IsString, IsUUID } from 'class-validator';
 
@@ -20,4 +20,14 @@ export class CreateOrderItemDto {
   @Transform(({ value }) => Number(value))
   @IsPositive()
   quantity!: number;
+
+  // Optional Price field
+  @ApiPropertyOptional({
+    type: 'number',
+    example: 100,
+    description: 'Price of the product variant',
+  })
+  @Transform(({ value }) => Number(value))
+  @IsPositive()
+  price?: number;
 }
