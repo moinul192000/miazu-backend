@@ -24,6 +24,8 @@ export class AnalyticsService {
     const totalCustomers =
       (await this.customerService.getTotalCustomers()) || 0;
     const totalOrders = (await this.orderService.getTotalOrders()) || 0;
+    const totalOrdersValue =
+      (await this.orderService.getTotalOrderValue()) || 0;
     const totalPaymentsValue =
       (await this.paymentService.getTotalPaymentsValue()) || 0;
     const totalEstimatedStockValue =
@@ -33,6 +35,7 @@ export class AnalyticsService {
       totalStocks,
       totalCustomers,
       totalOrders,
+      totalOrdersValue,
       totalPaymentsValue,
       totalEstimatedStockValue,
     };

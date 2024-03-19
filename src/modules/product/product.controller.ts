@@ -103,6 +103,7 @@ export class ProductController {
   }
 
   @Put(':id')
+  @Auth([RoleType.ADMIN])
   @HttpCode(HttpStatus.ACCEPTED)
   updateProduct(
     @UUIDParam('id') id: Uuid,
@@ -112,6 +113,7 @@ export class ProductController {
   }
 
   @Delete(':id')
+  @Auth([RoleType.ADMIN])
   @HttpCode(HttpStatus.ACCEPTED)
   async deleteProduct(@UUIDParam('id') id: Uuid): Promise<void> {
     await this.productService.deleteProduct(id);
