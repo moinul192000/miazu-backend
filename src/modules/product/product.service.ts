@@ -281,6 +281,16 @@ export class ProductService {
   async getStockAdjustmentLogByProductId(productId: Uuid) {
     return this.stockAdjustmentLogRepository.find({
       where: { productVariant: { product: { id: productId } } },
+      relations: ['productVariant'],
+      select: [
+        'previousStockLevel',
+        'newStockLevel',
+        'adjustmentAmount',
+        'adjustmentDate',
+        'adjustedBy',
+        'reason',
+        'productVariant',
+      ],
     });
   }
 

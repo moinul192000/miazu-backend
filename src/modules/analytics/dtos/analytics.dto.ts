@@ -11,6 +11,9 @@ export class AnalyticsDto {
   totalOrders: number;
 
   @NumberField()
+  totalOrdersValue: number;
+
+  @NumberField()
   totalPaymentsValue: number;
 
   @NumberField()
@@ -22,5 +25,6 @@ export class AnalyticsDto {
     this.totalOrders = data.totalOrders;
     this.totalPaymentsValue = data.totalPaymentsValue;
     this.totalEstimatedStockValue = data.totalEstimatedStockValue;
+    this.totalOrdersValue = data.totalOrdersValue;
   }
 }

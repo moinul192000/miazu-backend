@@ -488,4 +488,29 @@ export class OrderService {
       returnOrder.order.orderId,
     );
   }
+
+  // Get total order value of all orders
+  async getTotalOrderValue(): Promise<number> {
+    const orders = await this.orderRepository.find({
+      relations: ['items'],
+    });
+
+    if (orders.length === 0) {
+      return 0;
+    }
+
+    return orders.reduce(
+      (total, order) =>
+        total +
+        order.items.reduce(
+          (orderTotal, item) =>
+            orderTotal +
+            item.price * item.quantity -
+            Number(order.discount ?? 0) +
+            Number(order.deliveryFee ?? 0),
+          0,
+        ),
+      0,
+    );
+  }
 }
