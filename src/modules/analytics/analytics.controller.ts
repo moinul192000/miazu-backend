@@ -30,4 +30,28 @@ export class AnalyticsController {
   getAllAnalytics(): Promise<AnalyticsDto> {
     return this.analyticsService.getAllAnalytics();
   }
+
+  @Get('product/sales')
+  @UseInterceptors(CacheInterceptor)
+  @Auth([RoleType.ADMIN])
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get all product sales count by variant',
+  })
+  async getProductSales(): Promise<unknown> {
+    return this.analyticsService.getProductOrderCountByVariant();
+  }
+
+  @Get('product/sales/summary')
+  @UseInterceptors(CacheInterceptor)
+  @Auth([RoleType.ADMIN])
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get all product order count',
+  })
+  getProductOrderCount(): Promise<unknown> {
+    return this.analyticsService.getTotalOrderByProduct();
+  }
 }

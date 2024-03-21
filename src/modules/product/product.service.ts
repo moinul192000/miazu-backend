@@ -89,6 +89,10 @@ export class ProductService {
     return items.toPageDto(pageMetaDto);
   }
 
+  async findAll(): Promise<ProductEntity[]> {
+    return this.productRepository.find();
+  }
+
   async getSingleProduct(id: Uuid): Promise<ProductEntity> {
     const queryBuilder = this.productRepository
       .createQueryBuilder('product')
@@ -355,5 +359,13 @@ export class ProductService {
     } catch {
       throw new InternalServerErrorException('Error adjusting stock');
     }
+  }
+
+  // Get all variants of a product by product id
+  async getOrderItemsById(productId: Uuid) {
+    return this.productVariantRepository.find({
+      where: { product: { id: productId } },
+      relations: ['orderItems'],
+    });
   }
 }
