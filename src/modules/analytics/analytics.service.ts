@@ -40,4 +40,38 @@ export class AnalyticsService {
       totalEstimatedStockValue,
     };
   }
+
+  async getProductOrderCountByVariant(): Promise<unknown> {
+    const products = await this.productService.findAll();
+    const productOrderCount = {};
+
+    await Promise.all(
+      products.map(async (product) => {
+        const orderCount = await this.orderService.getTotalOrdersForProduct(
+          product.id,
+        );
+
+        productOrderCount[product.name] = orderCount;
+      }),
+    );
+
+    return productOrderCount;
+  }
+
+  async getTotalOrderByProduct(): Promise<unknown> {
+    const products = await this.productService.findAll();
+    const totalOrderByProduct = {};
+
+    await Promise.all(
+      products.map(async (product) => {
+        const totalOrder = await this.orderService.getTotalOrderByProduct(
+          product.id,
+        );
+
+        totalOrderByProduct[product.name] = totalOrder;
+      }),
+    );
+
+    return totalOrderByProduct;
+  }
 }

@@ -123,4 +123,16 @@ export class OrderController {
   // async getReturns(@Param('id') id: number) {
   //   return this.orderService.getReturns(id);
   // }
+
+  // Get order by product variant
+  @Get('product-variant/:id')
+  @Auth([RoleType.ADMIN])
+  @HttpCode(HttpStatus.OK)
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Get order by product variant',
+  })
+  async getOrderByProductVariant(@Param('id') id: Uuid) {
+    return this.orderService.getOrdersByProductVariant(id);
+  }
 }

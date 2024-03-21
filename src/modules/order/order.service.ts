@@ -513,4 +513,61 @@ export class OrderService {
       0,
     );
   }
+
+  async getTotalOrdersForProduct(
+    productId: Uuid,
+  ): Promise<Record<string, number>> {
+    const productVariants =
+      await this.productService.getOrderItemsById(productId);
+
+    if (productVariants.length === 0) {
+      return {};
+    }
+
+    const orderCount: Record<string, number> = {};
+
+    for (const variant of productVariants) {
+      const variantTotal = variant.orderItems.reduce(
+        (total: number, item) => total + item.quantity,
+        0,
+      );
+
+      orderCount[variant.sku] = variantTotal;
+    }
+
+    return orderCount;
+  }
+
+  async getTotalOrderByProduct(productId: Uuid): Promise<number> {
+    const productVariants =
+      await this.productService.getOrderItemsById(productId);
+
+    if (productVariants.length === 0) {
+      return 0;
+    }
+
+    return productVariants.reduce(
+      (total: number, variant) =>
+        total +
+        variant.orderItems.reduce(
+          (variantTotal: number, item) => variantTotal + item.quantity,
+          0,
+        ),
+      0,
+    );
+  }
+
+  async getOrdersByProductVariant(
+    productVariantId: Uuid,
+  ): Promise<OrderEntity[]> {
+    return this.orderRepository
+      .createQueryBuilder('order')
+      .leftJoinAndSelect('order.customer', 'customer')
+      .leftJoinAndSelect('order.items', 'items')
+      .leftJoinAndSelect('items.productVariant', 'productVariant')
+      .where('productVariant.id = :productVariantId', {
+        productVariantId,
+      })
+      .getMany();
+  }
 }
