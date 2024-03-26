@@ -72,6 +72,16 @@ export class ProductService {
 
     await this.productVariantRepository.save(productVariantEntity);
 
+    const stockAdjustmentLog = new StockAdjustmentLogEntity();
+    stockAdjustmentLog.previousStockLevel = 0;
+    stockAdjustmentLog.adjustmentAmount = productVariantEntity.stockLevel;
+    stockAdjustmentLog.newStockLevel = productVariantEntity.stockLevel;
+    stockAdjustmentLog.adjustmentDate = new Date();
+    stockAdjustmentLog.adjustedBy = 'System';
+    stockAdjustmentLog.productVariant = productVariantEntity;
+    stockAdjustmentLog.reason = 'Initial Stock Level';
+    await this.stockAdjustmentLogRepository.save(stockAdjustmentLog);
+
     return productEntity;
   }
 
